@@ -54,13 +54,13 @@ public class Pipeline<I, O> {
     }
 
     /**
-     * Removes a handler from pipeline by providing its ID.
+     * Removes a handler from pipeline by providing its name.
      *
-     * @param handlerId ID of the handler which clinet wanna remove.
+     * @param handlerName Name of the handler which clinet wanna remove.
      */
-    public void deleteHandler(String handlerId) {
+    public void deleteHandler(String handlerName) {
         for (Handler handler : handlers) {
-            if (handler.getHandlerId().equals(handlerId)) {
+            if (handler.getHandlerName().equals(handlerName)) {
                 handlers.remove(handler);
             }
         }
@@ -79,8 +79,8 @@ public class Pipeline<I, O> {
             try {
                 obj = handler.function(obj);
             } catch (ClassCastException e) {
-                throw new DataTypeMissMatchException("Provided data type for handler " + handler.getHandlerId() +
-                        "does not match with required data type!");
+                throw new DataTypeMissMatchException("Provided data type for handler \"" + handler.getHandlerName() +
+                        "\" does not match with required data type!");
             }
         }
         try {

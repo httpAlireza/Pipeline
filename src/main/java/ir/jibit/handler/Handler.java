@@ -10,19 +10,19 @@ package ir.jibit.handler;
 
 public abstract class Handler<I, O> {
     /**
-     * Saves a string as id for the handler.
+     * Saves a string as the name of the handler.
      */
-    private String handlerId;
+    private String handlerName;
 
-    public String getHandlerId() {
-        return handlerId;
+    public String getHandlerName() {
+        return handlerName;
     }
 
-    public void setHandlerId(String handlerId) {
-        if (handlerId == null || handlerId.isBlank()) {
+    public void setHandlerName(String handlerName) {
+        if (handlerName == null || handlerName.isBlank()) {
             throw new IllegalArgumentException("handler id can not be null or blank!");
         }
-        this.handlerId = handlerId;
+        this.handlerName = handlerName;
     }
 
     /**
