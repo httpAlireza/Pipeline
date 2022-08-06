@@ -24,7 +24,10 @@ public abstract class Handler<I, O> {
         }
         this.handlerId = handlerId;
     }
-    /** The abstract method witch should be overridden for the purpose.
+
+    /**
+     * The abstract method witch should be overridden for the purpose.
+     *
      * @param input the object witch enters to the handler.
      * @return an object of O type.
      */
