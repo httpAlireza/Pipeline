@@ -4,31 +4,66 @@ package ir.jibit.pipeline;
 import ir.jibit.handler.Handler;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.logging.Logger;
 
 /**
- * Takes some handlers and store them in an ArrayList and executes handlers functions on an input object
+ * Takes some handlers and store them in an LinkedList and executes handlers functions on an input object
  *
  * @param <I> the type of the input to the pipeline
  * @param <O> the type of te output of pipeline
+ * @author Alireza Khodadoost
  */
 @SuppressWarnings("ALL")
 public class Pipeline<I, O> {
-    private final ArrayList<Handler> handlers;
+    /**
+     * A linkedlist which saving all the handlers of the pipeline.
+     */
+    private final LinkedList<Handler> handlers;
 
     public Pipeline() {
-        handlers = new ArrayList<>();
+        handlers = new LinkedList<>();
     }
 
+    /**
+     * Adds a handler to the pipeline.
+     *
+     * @param handler provided handler by the client.
+     */
     public void addHandler(Handler handler) {
         handlers.add(handler);
     }
 
+    /**
+     * Adds a handler to the pipeline in the specified position.
+     *
+     * @param handler Provided handler by the client.
+     * @param index   The specified index for the handler.
+     */
     public void addHandler(Handler handler, int index) {
         handlers.add(index, handler);
     }
 
+    /**
+     * Removes a handler from pipeline.
+     *
+     * @param handler The handler which clinet wanna remove.
+     */
     public void deleteHandler(Handler handler) {
         handlers.remove(handler);
+    }
+
+    /**
+     * Removes a handler from pipeline by providing its ID.
+     *
+     * @param handlerId ID of the handler which clinet wanna remove.
+     */
+    public void deleteHandler(String handlerId) {
+        for (Handler handler : handlers) {
+            if (handler.getHandlerId().equals(handlerId)) {
+                handlers.remove(handler);
+            }
+        }
     }
 
     /**
@@ -38,20 +73,14 @@ public class Pipeline<I, O> {
      * @throws DataTypeMissMatchException if data type of input and first handler input or output of a handler and input
      *                                    of next handler don't match
      */
-    public O start(I input) {
+    public O run(I input) {
         Object obj = input;
-
-        for (int i = 0; i < handlers.size(); i++) {
+        for (Handler handler : handlers) {
             try {
-                obj = handlers.get(i).function(obj);
+                obj = handler.function(obj);
             } catch (ClassCastException e) {
-                if (i == 0) {
-                    throw new DataTypeMissMatchException("Data types of input object and first handler input " +
-                            "do not match!");
-                } else {
-                    throw new DataTypeMissMatchException("Data types of output of handler at index " + (i - 1) +
-                            " and input of handler at index" + i + " do not match!");
-                }
+                throw new DataTypeMissMatchException("Provided data type for handler " + handler.getHandlerId() +
+                        "does not match with required data type!");
             }
         }
         try {
