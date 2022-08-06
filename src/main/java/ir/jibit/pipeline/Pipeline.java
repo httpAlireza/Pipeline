@@ -2,10 +2,10 @@ package ir.jibit.pipeline;
 
 
 import ir.jibit.handler.Handler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.logging.Logger;
 
 /**
  * Takes some handlers and store them in an LinkedList and executes handlers functions on an input object
@@ -15,14 +15,20 @@ import java.util.logging.Logger;
  * @author Alireza Khodadoost
  */
 @SuppressWarnings("ALL")
-public class Pipeline<I, O> {
+public final class Pipeline<I, O> {
     /**
      * A linkedlist which saving all the handlers of the pipeline.
      */
     private final LinkedList<Handler> handlers;
 
+    /**
+     * A logger object from slf4j package for logging messages.
+     */
+    private final Logger logger;
+
     public Pipeline() {
         handlers = new LinkedList<>();
+        logger = LoggerFactory.getLogger(Pipeline.class);
     }
 
     /**
@@ -74,19 +80,29 @@ public class Pipeline<I, O> {
      *                                    of next handler don't match
      */
     public O run(I input) {
+        logger.info("pipeline is running!");
         Object obj = input;
         for (Handler handler : handlers) {
             try {
+                logger.info("haldler \"" + handler.getHandlerName() + "\" is processing...");
                 obj = handler.function(obj);
             } catch (ClassCastException e) {
-                throw new DataTypeMissMatchException("Provided data type for handler \"" + handler.getHandlerName() +
+                DataTypeMissMatchException exception = new DataTypeMissMatchException("Provided data type for handler \""
+                        + handler.getHandlerName() +
                         "\" does not match with required data type!");
+                logger.error("pipeline failed!", exception);
+                throw exception;
             }
         }
         try {
-            return (O) obj;
+            O object = (O) obj;
+            logger.info("pipeline is done!");
+            return object;
         } catch (ClassCastException e) {
-            throw new DataTypeMissMatchException("Data types of last handler output and pipelime output do not match!");
+            DataTypeMissMatchException exception = new DataTypeMissMatchException("Data types of last handler output " +
+                    "and pipelime output do not match!");
+            logger.error("pipeline failed!", exception);
+            throw exception;
         }
     }
 }
