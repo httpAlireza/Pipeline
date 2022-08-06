@@ -10,8 +10,8 @@ import java.util.LinkedList;
 /**
  * Takes some handlers and store them in an LinkedList and executes handlers functions on an input object
  *
- * @param <I> the type of the input to the pipeline
- * @param <O> the type of te output of pipeline
+ * @param <I> The type of the input to the pipeline.
+ * @param <O> The type of te output of pipeline.
  * @author Alireza Khodadoost
  */
 @SuppressWarnings("ALL")
@@ -73,11 +73,12 @@ public final class Pipeline<I, O> {
     }
 
     /**
-     * passes input object to the handlers one by one to do dunctions on it
+     * Passes input object to the handlers one by one to do process it. this method logs some informations about
+     * pipeline stages and its status.
      *
-     * @param input object for begining the pipeline
-     * @throws DataTypeMissMatchException if data type of input and first handler input or output of a handler and input
-     *                                    of next handler don't match
+     * @param input Object for begining the pipeline.
+     * @throws DataTypeMissMatchException If data type of input and first handler input or output of a handler and input
+     *                                    of next handler don't match.
      */
     public O run(I input) {
         logger.info("pipeline is running!");
