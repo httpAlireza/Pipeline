@@ -12,17 +12,14 @@ public abstract class Handler<I, O> {
     /**
      * Saves a string as the name of the handler.
      */
-    private String handlerName;
+    private final String handlerName;
+
+    public Handler(String handlerName) {
+        this.handlerName = handlerName;
+    }
 
     public String getHandlerName() {
         return handlerName;
-    }
-
-    public void setHandlerName(String handlerName) {
-        if (handlerName == null || handlerName.isBlank()) {
-            throw new IllegalArgumentException("handler id can not be null or blank!");
-        }
-        this.handlerName = handlerName;
     }
 
     /**
