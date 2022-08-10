@@ -52,7 +52,7 @@ public final class HandlerWrapper {
      *
      * @param input An Object to apply handler function on it.
      * @throws DataTypeMissMatchException If data type of input does not match required data type of method for the
-     * input.
+     *                                    input.
      */
     public Object process(Object input) {
         logger.info("handler \"" + currentHandler.getHandlerName() + "\" is processing...");

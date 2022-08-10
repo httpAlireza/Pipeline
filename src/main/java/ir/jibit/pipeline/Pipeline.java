@@ -2,6 +2,7 @@ package ir.jibit.pipeline;
 
 
 import ir.jibit.handler.Handler;
+import ir.jibit.handler.HandlerWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,37 +18,46 @@ import java.util.LinkedList;
 @SuppressWarnings("ALL")
 public final class Pipeline<I, O> {
     /**
-     * A linkedlist which saving all the handlers of the pipeline.
+     * A linkedlist which saving all the handlerWrappers for the pipeline.
      */
-    private final LinkedList<Handler> handlers;
+    private final LinkedList<HandlerWrapper> handlerWrappers;
 
     /**
      * A logger object from slf4j package for logging messages.
      */
-    private final Logger logger;
+    private final static Logger logger = LoggerFactory.getLogger(Pipeline.class);
 
     public Pipeline() {
-        handlers = new LinkedList<>();
-        logger = LoggerFactory.getLogger(Pipeline.class);
+        handlerWrappers = new LinkedList<>();
     }
 
     /**
-     * Adds a handler to the pipeline.
+     * Wrapps a handler and adds it to the list. Also sets the newhandlerWrapper as the nextHandlerWrapper field
+     * in the previos one.
      *
      * @param handler provided handler by the client.
      */
     public void addHandler(Handler handler) {
-        handlers.add(handler);
+        HandlerWrapper newHandlerWrapper = new HandlerWrapper(handler);
+        if (!handlerWrappers.isEmpty()) {
+            handlerWrappers.getLast().setNextHandlerWrapper(newHandlerWrapper);
+        }
+        handlerWrappers.add(newHandlerWrapper);
     }
 
     /**
-     * Adds a handler to the pipeline in the specified position.
+     * Wrapps a handler and adds it to the list. Also changes nextHandlerWraper field of prvious handlerWrapper.
      *
      * @param handler Provided handler by the client.
      * @param index   The specified index for the handler.
      */
     public void addHandler(Handler handler, int index) {
-        handlers.add(index, handler);
+        HandlerWrapper newHandlerWrapper = new HandlerWrapper(handler);
+        newHandlerWrapper.setNextHandlerWrapper(handlerWrappers.get(index));
+        if (index != 0) {
+            handlerWrappers.get(index - 1).setNextHandlerWrapper(newHandlerWrapper);
+        }
+        handlerWrappers.add(index, newHandlerWrapper);
     }
 
     /**
@@ -56,7 +66,14 @@ public final class Pipeline<I, O> {
      * @param handler The handler which clinet wanna remove.
      */
     public void deleteHandler(Handler handler) {
-        handlers.remove(handler);
+        for (int i = 0; i < handlerWrappers.size(); i++) {
+            if (handlerWrappers.get(i).getCurrentHandler().equals(handler)) {
+                if (i != 0) {
+                    handlerWrappers.get(i - 1).setNextHandlerWrapper(handlerWrappers.get(i + 1));
+                }
+                handlerWrappers.remove(handlerWrappers.get(i));
+            }
+        }
     }
 
     /**
@@ -65,45 +82,27 @@ public final class Pipeline<I, O> {
      * @param handlerName Name of the handler which clinet wanna remove.
      */
     public void deleteHandler(String handlerName) {
-        for (Handler handler : handlers) {
-            if (handler.getHandlerName().equals(handlerName)) {
-                handlers.remove(handler);
+        for (int i = 0; i < handlerWrappers.size(); i++) {
+            if (handlerWrappers.get(i).getCurrentHandler().getHandlerName().equals(handlerName)) {
+                if (i != 0) {
+                    handlerWrappers.get(i - 1).setNextHandlerWrapper(handlerWrappers.get(i + 1));
+                }
+                handlerWrappers.remove(handlerWrappers.get(i));
             }
         }
     }
 
     /**
-     * Passes input object to the handlers one by one to do process it. this method logs some informations about
-     * pipeline stages and its status.
+     * Passes input object to the first handlerWrapper and then they pass it one by one to each other for processing it.
      *
      * @param input Object for begining the pipeline.
-     * @throws DataTypeMissMatchException If data type of input and first handler input or output of a handler and input
-     *                                    of next handler don't match.
+     * @throws DataTypeMissMatchException If data type of input for some handler function does not match the required
+     * data type for that method.
      */
     public O run(I input) {
         logger.info("pipeline is running!");
-        Object obj = input;
-        for (Handler handler : handlers) {
-            try {
-                logger.info("haldler \"" + handler.getHandlerName() + "\" is processing...");
-                obj = handler.function(obj);
-            } catch (ClassCastException e) {
-                DataTypeMissMatchException exception = new DataTypeMissMatchException("Provided data type for handler \""
-                        + handler.getHandlerName() +
-                        "\" does not match with required data type!");
-                logger.error("pipeline failed!", exception);
-                throw exception;
-            }
-        }
-        try {
-            O object = (O) obj;
-            logger.info("pipeline is done!");
-            return object;
-        } catch (ClassCastException e) {
-            DataTypeMissMatchException exception = new DataTypeMissMatchException("Data types of last handler output " +
-                    "and pipelime output do not match!");
-            logger.error("pipeline failed!", exception);
-            throw exception;
-        }
+        O output = (O) handlerWrappers.getFirst().process(input);
+        logger.info("pipeline is done!");
+        return output;
     }
 }
